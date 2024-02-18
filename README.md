@@ -1,1 +1,1 @@
-# DSI_C2_githubactions2
+Alpha Vantage Exercise for course of DSI Cert
