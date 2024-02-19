@@ -1,0 +1,10 @@
+symbol: IBM
+paramlist: ["high", "low"]
+function: TIME_SERIES_MONTHLY
+analysisType: "Monthly Time Series"
+ntfy:
+plot_color:
+plot_x_title:
+plot_y_title:
+figure_size:
+default_save_path:
