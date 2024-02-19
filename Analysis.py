@@ -19,90 +19,96 @@ class Analysis:
         self.api_key = api_key
         self.period = period
         self.data_type = data_type
+        self.load_data = any
 
-def load_config(analysis_config: str):
-    try:
-            with open( analysis_config + "/user_config.yml",'r') as yamlfile:
-                user_config = yaml.safe_load(yamlfile)
+    def Analysis(self, analysis_config: str):
+        try:
+                with open( analysis_config + "/user_config.yml",'r') as yamlfile:
+                    user_config = yaml.safe_load(yamlfile)
 
-            with open( analysis_config + "/analysis_config.yml",'r') as yamlfile:
-                analysis_config = yaml.safe_load(yamlfile)
-    except FileNotFoundError as e:
-            logging.error("Cant find the config files, please check the path again.")
-            raise e
+                with open( analysis_config + "/analysis_config.yml",'r') as yamlfile:
+                    analysis_config = yaml.safe_load(yamlfile)
+        except FileNotFoundError as e:
+                logging.error("Cant find the config files, please check the path again.")
+                raise e
 
-    
-    analysis_obj = Analysis(github_token = user_config["github_token"], 
-                            ntfy = analysis_config["ntfy"],
-                            plot_color = analysis_config["plot_color"],
-                            plot_x_title = analysis_config["plot_x_title"],
-                            plot_y_title = analysis_config["plot_y_title"],
-                            figure_size = analysis_config["figure_size"],
-                            default_save_path = analysis_config["default_save_path"],
-                            function = analysis_config["function"],
-                            symbol = analysis_config["symbol"],
-                            analysis_type = analysis_config["analysis_type"],
-                            api_key = user_config["key"],
-                            period = analysis_config["period"],
-                            data_type = analysis_config["data_type"]
-                            )
-    
-    #json.dumps({ "function": config['function'], "symbol": config['symbol'], "analysis_type" = config['analysisType']})
- 
-    return analysis_obj
-
-
-def load_data(analysis_obj: Analysis):
-
- 
-    #except Error as e:
         
-    url = f'https://www.alphavantage.co/query?function={analysis_obj.function}&symbol={analysis_obj.symbol}&apikey=' + analysis_obj.api_key 
+        analysis_obj = Analysis(github_token = user_config["github_token"], 
+                                ntfy = analysis_config["ntfy"],
+                                plot_color = analysis_config["plot_color"],
+                                plot_x_title = analysis_config["plot_x_title"],
+                                plot_y_title = analysis_config["plot_y_title"],
+                                figure_size = analysis_config["figure_size"],
+                                default_save_path = analysis_config["default_save_path"],
+                                function = analysis_config["function"],
+                                symbol = analysis_config["symbol"],
+                                analysis_type = analysis_config["analysis_type"],
+                                api_key = user_config["key"],
+                                period = analysis_config["period"],
+                                data_type = analysis_config["data_type"]
+                                )
+        
+        #json.dumps({ "function": config['function'], "symbol": config['symbol'], "analysis_type" = config['analysisType']})
+    
+        return analysis_obj
+
+
+    def load_data(self):
 
     
-    r = requests.get(url)
+        #except Error as e:
+            
+        url = f'https://www.alphavantage.co/query?function={self.function}&symbol={self.symbol}&apikey=' + self.api_key 
 
-    if (r.status_code != 200):
-         raise Exception("Http request failed. Please check.")
-    #if 
-    json_content = r.json()
+        
+        r = requests.get(url)
 
-    json_content= json_content[analysis_obj.analysis_type]
-    
-    return json_content
+        if (r.status_code != 200):
+            raise Exception("Http request failed. Please check.")
+        #if 
+        json_content = r.json()
+        
+        self.load_data = json_content[self.analysis_type]
+        return None
 
-def compute_analysis(loaded_data:any, analysis_obj: Analysis):
-    i = 0
-    #  assert(data_type in ["open", "high"])
-    if (analysis_obj.data_type not in ["open", "high", "low", "close", "volume"]):
-        raise ValueError ("Your data time must be in [open, high, low, close, volume] ")
-    data = []
-    for k,item in loaded_data.items():
-        for key in item.keys():
-            if re.search(f".*{analysis_obj.data_type}.*", key):
-                data.append(float(item[key]))
+    def compute_analysis(self,):
+        i = 0
+        #  assert(data_type in ["open", "high"])
+        if (self.data_type not in ["open", "high", "low", "close", "volume"]):
+            raise ValueError ("Your data time must be in [open, high, low, close, volume] ")
+        data = []
+        for k,item in self.load_data.items():
+            for key in item.keys():
+                if re.search(f".*{self.data_type}.*", key):
+                    data.append(float(item[key]))
 
-        i+=1
-        if (i == analysis_obj.period):
-            break
+            i+=1
+            if (i == self.load_data.period):
+                break
 
-    proceeded_data = [f"This is the {analysis_obj.analysis_type} summary for {analysis_obj.symbol}'s {analysis_obj.data_type} in a period of {analysis_obj.period}: ",
-                      f"The mean {analysis_obj.data_type} is {str(sum(data)/len(data))},", 
-                      f"the maximum {analysis_obj.data_type} is {str(max(data))},", 
-                      f"And the minimum {analysis_obj.data_type} is {str(min(data))}.", 
-                      ]
-    return proceeded_data
+        proceeded_data = [f"This is the {self.analysis_type} summary for {self.symbol}'s {self.data_type} in a period of {self.period}: ",
+                        f"The mean {self.data_type} is {str(sum(data)/len(data))},", 
+                        f"the maximum {self.data_type} is {str(max(data))},", 
+                        f"And the minimum {self.data_type} is {str(min(data))}.", 
+                        ]
+        return proceeded_data
 
 
-def notify_done(message: str):
-    return
+    def notify_done(message: [str]):
+        return
 
-if __name__ == "__main__":
-    config = load_config("./config")
-    loaded_data = load_data(config)
-    proceeded_data = compute_analysis(loaded_data=loaded_data, analysis_obj= config)
-    
-    #notify_done("It is done")
+    if __name__ == "__main__":
+
+        analysis_obj = Analysis(analysis_config="./config")
+        analysis_obj.load_data()
+        analysis_output = analysis_obj.compute_analysis()
+
+        #config = Analysis("./config")
+
+        #loaded_data = load_data(config)
+        #proceeded_data = compute_analysis(loaded_data=loaded_data, analysis_obj= config)
+        #proceeded_data.append("Process is completed. A copy of report is saved in the reports dir.")
+        #notify_done(proceeded_data)
 
 
 
