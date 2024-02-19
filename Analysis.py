@@ -5,7 +5,7 @@ import logging
 import re
 
 class Analysis:
-    def __init__(self, github_token, ntfy, plot_color, plot_x_title, plot_y_title, figure_size, default_save_path, function, symbol, analysis_type, api_key, data_type, period):
+    def __init__(self, load_data, github_token, ntfy, plot_color, plot_x_title, plot_y_title, figure_size, default_save_path, function, symbol, analysis_type, api_key, data_type, period):
         self.github_token = github_token
         self.ntfy = ntfy
         self.plot_color = plot_color
@@ -19,9 +19,9 @@ class Analysis:
         self.api_key = api_key
         self.period = period
         self.data_type = data_type
-        self.load_data = any
+        self.loaded_data = load_data
 
-    def Analysis(self, analysis_config: str):
+    def Analysis(analysis_config: str):
         try:
                 with open( analysis_config + "/user_config.yml",'r') as yamlfile:
                     user_config = yaml.safe_load(yamlfile)
@@ -45,7 +45,8 @@ class Analysis:
                                 analysis_type = analysis_config["analysis_type"],
                                 api_key = user_config["key"],
                                 period = analysis_config["period"],
-                                data_type = analysis_config["data_type"]
+                                data_type = analysis_config["data_type"],
+                                load_data = analysis_config["data_type"]
                                 )
         
         #json.dumps({ "function": config['function'], "symbol": config['symbol'], "analysis_type" = config['analysisType']})
@@ -68,7 +69,7 @@ class Analysis:
         #if 
         json_content = r.json()
         
-        self.load_data = json_content[self.analysis_type]
+        self.loaded_data = json_content[self.analysis_type]
         return None
 
     def compute_analysis(self,):
@@ -77,13 +78,13 @@ class Analysis:
         if (self.data_type not in ["open", "high", "low", "close", "volume"]):
             raise ValueError ("Your data time must be in [open, high, low, close, volume] ")
         data = []
-        for k,item in self.load_data.items():
+        for k,item in self.loaded_data.items():
             for key in item.keys():
                 if re.search(f".*{self.data_type}.*", key):
                     data.append(float(item[key]))
 
             i+=1
-            if (i == self.load_data.period):
+            if (i == self.period):
                 break
 
         proceeded_data = [f"This is the {self.analysis_type} summary for {self.symbol}'s {self.data_type} in a period of {self.period}: ",
@@ -94,7 +95,13 @@ class Analysis:
         return proceeded_data
 
 
-    def notify_done(message: [str]):
+    def notify_done(self, message: [str]):
+        data = f"{message[0]}\n{message[1]}\n{message[2]} \n{message[3]}"
+        headers = "Process is completed. A copy of report is saved in the reports dir."
+        url = "https://ntfy.sh/" + self.ntfy
+        requests.post(url,
+            data=data,
+            headers= {"Title": headers})
         return
 
     if __name__ == "__main__":

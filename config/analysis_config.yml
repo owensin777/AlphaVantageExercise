@@ -2,9 +2,8 @@ symbol: IBM
 data_type: "high"
 function: TIME_SERIES_MONTHLY
 period: 20
-
 analysis_type: "Monthly Time Series"
-ntfy:
+ntfy: "stock_trade_history_owen"
 plot_color:
 plot_x_title:
 plot_y_title:
